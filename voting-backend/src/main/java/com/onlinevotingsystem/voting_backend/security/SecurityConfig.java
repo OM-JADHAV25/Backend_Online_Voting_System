@@ -110,7 +110,11 @@ public class SecurityConfig {
 
                         // Public read-only endpoints for elections and candidates
                         // These must come BEFORE the general /api/elections/** matcher
-                        .requestMatchers(HttpMethod.GET, "/api/elections", "/api/elections/*/candidates").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/elections",
+                                "/api/elections/*/results",
+                                "/api/elections/*/candidates"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/candidates").permitAll()
 
                         // Admin endpoints - these MUST come before /api/elections/** and /api/candidates/**

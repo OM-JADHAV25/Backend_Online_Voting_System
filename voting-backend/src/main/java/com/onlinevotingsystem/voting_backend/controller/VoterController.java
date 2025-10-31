@@ -1,13 +1,16 @@
 package com.onlinevotingsystem.voting_backend.controller;
 
 import com.onlinevotingsystem.voting_backend.model.User;
+import com.onlinevotingsystem.voting_backend.model.VotingHistory;
 import com.onlinevotingsystem.voting_backend.service.UserService;
 import com.onlinevotingsystem.voting_backend.security.JwtUtil;
+import com.onlinevotingsystem.voting_backend.service.VoteService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/voters")
@@ -15,10 +18,12 @@ public class VoterController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final VoteService voteService;  // ADD THIS
 
-    public VoterController(UserService userService, JwtUtil jwtUtil) {
+    public VoterController(UserService userService, JwtUtil jwtUtil, VoteService voteService) {
         this.userService = userService;
         this.jwtUtil = jwtUtil;
+        this.voteService = voteService;  // ADD THIS
     }
 
     // Send OTP endpoint matching frontend expectation
@@ -90,30 +95,47 @@ public class VoterController {
     public ResponseEntity<?> getVoterDetails(@PathVariable String voterId,
                                              @RequestHeader("Authorization") String authHeader) {
         try {
-            // Extract and validate JWT token
             String token = authHeader.replace("Bearer ", "");
             String tokenVoterId = jwtUtil.extractVoterId(token);
 
-            // Ensure the voter can only access their own data
             if (!tokenVoterId.equals(voterId)) {
                 return ResponseEntity.status(403).body("Access denied");
             }
 
             User voter = userService.getUserDetails(voterId);
 
-            // Create response object with voting history and other details
+            // Get voting history
+            List<VotingHistory> votingHistory = voteService.getVotingHistory(voter);
+
+            // Create response object
             Map<String, Object> voterData = new HashMap<>();
             voterData.put("voterId", voter.getVoterId());
             voterData.put("name", voter.getName());
-            voterData.put("fullName", voter.getName()); // Frontend expects fullName
+            voterData.put("fullName", voter.getName());
             voterData.put("email", voter.getEmail());
+            voterData.put("dateOfBirth", voter.getDateOfBirth());
+            voterData.put("phoneNumber", voter.getPhoneNumber());
             voterData.put("constituency", voter.getConstituency());
-            voterData.put("status", "ACTIVE"); // You can add this field to User model
+            voterData.put("status", voter.getStatus() != null ? voter.getStatus() : "ACTIVE");
             voterData.put("registrationDate", voter.getRegistrationDate());
-            voterData.put("hasVoted", false); // You'll need to implement this logic
+            voterData.put("votedElections", voteService.getElectionsVotedByUser(voter));
 
-            // Add mock voting history for now - replace with actual data later
-            voterData.put("votingHistory", new java.util.ArrayList<>());
+            // Transform voting history for frontend
+            List<Map<String, Object>> historyList = votingHistory.stream()
+                    .map(h -> {
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("election", h.getElectionName());
+                        map.put("type", h.getElectionType() != null ? h.getElectionType() : "General");
+                        map.put("candidate", h.getCandidateName());
+                        map.put("party", h.getCandidateParty());
+                        map.put("date", h.getVotedAt().toString());
+                        map.put("reference", h.getReferenceNumber());
+                        map.put("status", "VERIFIED");
+                        return map;
+                    })
+                    .toList();
+
+            voterData.put("votingHistory", historyList);
 
             return ResponseEntity.ok(voterData);
 

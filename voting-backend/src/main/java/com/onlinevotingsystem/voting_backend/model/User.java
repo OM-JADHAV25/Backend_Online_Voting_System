@@ -2,6 +2,8 @@ package com.onlinevotingsystem.voting_backend.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -20,6 +22,11 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    private LocalDate dateOfBirth;  // Date of Birth
+
+    @Column(unique = true)
+    private String phoneNumber;     // Phone Number
+
     private String password;
 
     private String role;
@@ -34,4 +41,9 @@ public class User {
     private String otp;
 
     private LocalDateTime otpExpires;
+
+    @Column(name = "last_voted")
+    private LocalDateTime lastVoted;
+
+    private String status = "Pending"; // Pending, Verified, Blocked
 }

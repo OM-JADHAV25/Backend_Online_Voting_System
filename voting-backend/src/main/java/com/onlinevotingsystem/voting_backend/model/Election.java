@@ -1,10 +1,12 @@
 package com.onlinevotingsystem.voting_backend.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+
+import java.time.LocalDate;
+
 
 @Entity
-@Table(name = "elections")
+@Table(name = "election")
 public class Election {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,10 +20,10 @@ public class Election {
     private String district;
 
     @Column(name = "start_date")
-    private LocalDateTime startDate;
+    private LocalDate startDate;
 
     @Column(name = "end_date")
-    private LocalDateTime endDate;
+    private LocalDate endDate;
 
     private String description;
 
@@ -33,10 +35,14 @@ public class Election {
     @Column(name = "candidate_count")
     private Integer candidateCount = 0;
 
+    @Column(name = "results_declared")
+    private Boolean resultsDeclared = false;
+
+
     // Constructors
     public Election() {}
 
-    public Election(String name, String type, String district, LocalDateTime startDate, LocalDateTime endDate) {
+    public Election(String name, String type, String district, LocalDate startDate, LocalDate endDate) {
         this.name = name;
         this.type = type;
         this.district = district;
@@ -45,6 +51,10 @@ public class Election {
     }
 
     // Getters and Setters
+
+    public Boolean getResultsDeclared() { return resultsDeclared; }
+    public void setResultsDeclared(Boolean resultsDeclared) { this.resultsDeclared = resultsDeclared; }
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -57,11 +67,11 @@ public class Election {
     public String getDistrict() { return district; }
     public void setDistrict(String district) { this.district = district; }
 
-    public LocalDateTime getStartDate() { return startDate; }
-    public void setStartDate(LocalDateTime startDate) { this.startDate = startDate; }
+    public LocalDate getStartDate() { return startDate; }
+    public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
 
-    public LocalDateTime getEndDate() { return endDate; }
-    public void setEndDate(LocalDateTime endDate) { this.endDate = endDate; }
+    public LocalDate getEndDate() { return endDate; }
+    public void setEndDate(LocalDate endDate) { this.endDate = endDate; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

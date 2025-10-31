@@ -11,4 +11,6 @@ public interface ElectionRepository extends JpaRepository<Election, Long> {
     List<Election> findByStatus(String status);
     List<Election> findByType(String type);
     List<Election> findByDistrict(String district);
+    long countByStatus(String status);
+
 }

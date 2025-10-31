@@ -1,5 +1,6 @@
 package com.onlinevotingsystem.voting_backend.controller;
 
+import com.onlinevotingsystem.voting_backend.service.DashboardService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,18 +11,16 @@ import java.util.Map;
 @RequestMapping("/api/admin/dashboard")
 @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
 public class AdminDashboardController {
+    private final DashboardService dashboardService;
+
+    public AdminDashboardController(DashboardService dashboardService) {
+        this.dashboardService = dashboardService;
+    }
+
     @GetMapping("/stats")
     public ResponseEntity<?> getDashboardStats() {
         try {
-            Map<String, Object> stats = Map.of(
-                    "totalVoters", 1500,
-                    "votesCast", 1200,
-                    "activeElections", 3,
-                    "pendingVoters", 25,
-                    "turnoutRate", 80,
-                    "weeklyGrowth", 12
-            );
-            return ResponseEntity.ok(stats);
+            return ResponseEntity.ok(dashboardService.getDashboardStats());
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                     "message", "Error fetching dashboard stats",
