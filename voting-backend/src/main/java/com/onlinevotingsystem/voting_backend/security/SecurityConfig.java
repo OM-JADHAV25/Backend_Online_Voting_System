@@ -58,7 +58,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "http://localhost:5174"
+                "http://localhost:5174",
+                "https://onlinevotingsystem-flax.vercel.app"
         ));
 
         // Allow credentials
@@ -97,6 +98,8 @@ public class SecurityConfig {
 
                 // Configure authorization
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                       
                         .requestMatchers(
                                 "/api/voters/send-otp",
                                 "/api/voters/verify-otp",
@@ -109,7 +112,6 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // Public read-only endpoints for elections and candidates
-                        // These must come BEFORE the general /api/elections/** matcher
                         .requestMatchers(HttpMethod.GET,
                                 "/api/elections",
                                 "/api/elections/*/results",
@@ -127,6 +129,8 @@ public class SecurityConfig {
                         // Now these won't conflict with admin endpoints
                         .requestMatchers("/api/elections/**").authenticated()
                         .requestMatchers("/api/candidates/**").authenticated()
+
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
