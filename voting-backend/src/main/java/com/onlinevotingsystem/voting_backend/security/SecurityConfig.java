@@ -54,18 +54,18 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of(
-            "http://localhost:*",
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:3000",
+            "http://localhost:5173",
             "https://onlinevotingsystem-flax.vercel.app"
-         ));
-
-        configuration.setAllowedMethods(List.of(
-            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+        ));
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
         ));
 
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
 
-        configuration.setExposedHeaders(List.of("Authorization"));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
 
         configuration.setAllowCredentials(true);
 
@@ -79,20 +79,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // Enable CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-                // Disable CSRF for stateless API
                 .csrf(csrf -> csrf.disable())
-
-                // Set session management to stateless
+            
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // Configure authorization
                 .authorizeHttpRequests(auth -> auth
+            
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        
+                        .requestMatchers("/api/health", "/health", "/actuator/health").permitAll()
                                        
                         .requestMatchers(
                                 "/api/voters/send-otp",
@@ -105,7 +104,6 @@ public class SecurityConfig {
                                 "/api/test/**"
                         ).permitAll()
 
-                        // Public read-only endpoints for elections and candidates
                         .requestMatchers(HttpMethod.GET,
                                 "/api/elections",
                                 "/api/elections/*/results",
@@ -113,25 +111,19 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/candidates").permitAll()
 
-                        // Admin endpoints - these MUST come before /api/elections/** and /api/candidates/**
                         .requestMatchers("/api/admin/**").authenticated()
 
-                        // User endpoints - these come AFTER admin
                         .requestMatchers("/api/users/dashboard").authenticated()
                         .requestMatchers("/api/votes/**").authenticated()
 
-                        // Now these won't conflict with admin endpoints
                         .requestMatchers("/api/elections/**").authenticated()
                         .requestMatchers("/api/candidates/**").authenticated()
 
-                        // All other endpoints require authentication
                         .anyRequest().authenticated()
                 )
 
-                // Set authentication provider
                 .authenticationProvider(authenticationProvider())
 
-                // Add JWT filter before UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
