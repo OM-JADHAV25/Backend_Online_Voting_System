@@ -54,27 +54,21 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Allow frontend origins
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "http://localhost:5174",
-                "https://onlinevotingsystem-flax.vercel.app"
+        configuration.setAllowedOriginPatterns(List.of(
+            "http://localhost:*",
+            "https://onlinevotingsystem-flax.vercel.app"
+         ));
+
+        configuration.setAllowedMethods(List.of(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
         ));
 
-        // Allow credentials
+        configuration.setAllowedHeaders(List.of("*"));
+
+        configuration.setExposedHeaders(List.of("Authorization"));
+
         configuration.setAllowCredentials(true);
 
-        // Allow all headers
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-
-        // Allow specific HTTP methods
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-
-        // Expose Authorization header
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
-
-        // Set max age for preflight requests
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -98,7 +92,6 @@ public class SecurityConfig {
 
                 // Configure authorization
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                        
                         .requestMatchers(
                                 "/api/voters/send-otp",
