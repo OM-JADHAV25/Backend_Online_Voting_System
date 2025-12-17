@@ -92,6 +92,7 @@ public class SecurityConfig {
 
                 // Configure authorization
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                        
                         .requestMatchers(
                                 "/api/voters/send-otp",
@@ -122,8 +123,6 @@ public class SecurityConfig {
                         // Now these won't conflict with admin endpoints
                         .requestMatchers("/api/elections/**").authenticated()
                         .requestMatchers("/api/candidates/**").authenticated()
-
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // All other endpoints require authentication
                         .anyRequest().authenticated()
