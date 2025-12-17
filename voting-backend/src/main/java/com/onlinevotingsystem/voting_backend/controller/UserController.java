@@ -24,13 +24,20 @@ public class UserController {
     // ------------------ OTP Endpoints ------------------
 
     @PostMapping("/request-otp")
-    public Map<String, String> requestOtp(@RequestBody Map<String, String> body) throws Exception {
+    public Map<String, Object> requestOtp(@RequestBody Map<String, String> body) throws Exception {
         String voterId = body.get("voterId");
-        userService.requestOtp(voterId);
-        return Map.of("message", "OTP sent");
+
+        String otp = userService.requestOtp(voterId);
+
+        return Map.of(
+                "message", "OTP generated (Demo Mode)",
+                "otp", otp,
+                "demo", true
+        );
     }
 
-    @PostMapping("/verify-otp")
+
+        @PostMapping("/verify-otp")
     public Map<String, String> verifyOtp(@RequestBody Map<String, String> body) throws Exception {
         String voterId = body.get("voterId");
         String otp = body.get("otp");

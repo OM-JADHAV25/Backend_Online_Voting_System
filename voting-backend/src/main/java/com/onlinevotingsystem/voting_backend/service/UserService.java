@@ -53,23 +53,24 @@ public class UserService {
 
     // ------------------ OTP METHODS ------------------
 
-    public void requestOtp(String voterId) throws Exception {
+    public String requestOtp(String voterId) throws Exception {
         User user = userRepository.findByVoterId(voterId)
                 .orElseThrow(() -> new Exception("Voter ID not found. Please verify your voter ID and try again."));
 
-        // Generate 6-digit OTP
         String otp = String.format("%06d", new Random().nextInt(1000000));
         user.setOtp(otp);
         user.setOtpExpires(LocalDateTime.now().plusMinutes(5));
         userRepository.save(user);
 
-        // TODO: Send OTP via SMS or Email
         System.out.println("========================================");
         System.out.println("OTP Generated for Voter ID: " + voterId);
-        System.out.println("OTP: " + otp);
+        System.out.println("OTP (DEMO): " + otp);
         System.out.println("Valid until: " + user.getOtpExpires());
         System.out.println("========================================");
+
+        return otp;
     }
+
 
     public String verifyOtp(String voterId, String otp) throws Exception {
         User user = userRepository.findByVoterId(voterId)
