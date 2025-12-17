@@ -20,10 +20,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/**
- * JWT Authentication Filter for validating tokens sent in Authorization header
- * Adapted to use voterId instead of email for OTP login flow
- */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -41,8 +37,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/users/verify-otp",
             "/api/auth/",
             "/api/admin/login",
-            "/api/test/"
-
+            "/api/test/",
+            "/health",
+            "/api/health"
     );
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil, CustomUserDetailsService customUserDetailsService) {
@@ -56,8 +53,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String requestPath = request.getRequestURI();
+        String method = request.getMethod();
 
-        logger.info("Processing request: {} {}", request.getMethod(), requestPath);
+        logger.info("Processing request: {} {}", method, requestPath);
+
+        // CRITICAL: Allow OPTIONS requests to pass through immediately
+        if ("OPTIONS".equalsIgnoreCase(method)) {
+            logger.info("OPTIONS request detected, allowing through");
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // Skip JWT validation for public endpoints
         if (isPublicPath(requestPath)) {
@@ -83,7 +88,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     if (identifier != null && jwtUtil.validateToken(jwt, identifier)) {
                         logger.info("Token validated successfully for admin: {}", identifier);
 
-                        // Create simple authentication without UserDetailsService
                         UsernamePasswordAuthenticationToken authToken =
                                 new UsernamePasswordAuthenticationToken(identifier, null,
                                         Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
@@ -129,9 +133,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Check if the request path is a public endpoint
-     */
     private boolean isPublicPath(String requestPath) {
         return PUBLIC_PATHS.stream().anyMatch(requestPath::startsWith);
     }
